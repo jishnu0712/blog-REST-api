@@ -1,3 +1,5 @@
+const { validationResult } = require("express-validator");
+
 exports.getPost = (req, res, next) => {
   res.status(200).json({
     posts: [
@@ -26,6 +28,12 @@ exports.getPost = (req, res, next) => {
 };
 
 exports.createPost = (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res
+      .status(422)
+      .json({ message: "Validation Failed", errors: errors.array() });
+  }
   const title = req.body.title;
   const content = req.body.content;
 
@@ -37,7 +45,7 @@ exports.createPost = (req, res, next) => {
       title: title,
       content: content,
       creator: { name: "Jishnu" },
-      createdAt: new Date()
+      createdAt: new Date(),
     },
   });
 };
