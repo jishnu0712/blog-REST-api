@@ -7,9 +7,19 @@ const Post = require("../models/post");
 const post = require("../models/post");
 
 exports.getPosts = (req, res, next) => {
-  Post.find()
+  const currentPage = req.query.page || 1;
+  const perPage = 2;
+  let totalItems;
+
+  Post.find().countDocuments()
+    .then(count => {
+      totalItems = count;
+      return Post.find()
+                .skip((currentPage - 1) * perPage)
+                .limit(perPage);
+    })
     .then((posts) => {
-      res.status(200).json({ message: "Posts fetched!", posts: posts });
+      res.status(200).json({ message: "Posts fetched!", posts: posts, totalItems: totalItems });
     })
     .catch((err) => {
       if (!err.statusCode) {
@@ -107,7 +117,7 @@ exports.updatePost = (req, res, next) => {
         throw error;
       }
       if (imageUrl !== post.imageUrl) {
-        clearImage(imageUrl);
+        clearImage(post.imageUrl);
       }
       post.title = title;
       post.content = content;
@@ -115,7 +125,32 @@ exports.updatePost = (req, res, next) => {
       return post.save();
     })
     .then(result => {
-      res.status(200).json({message: 'Post updated!', post: post})
+      res.status(200).json({message: 'Post updated!', post: post});
+    })
+    .catch((err) => {
+      if (!err.statusCode) {
+        err.statusCode = 500;
+      }
+      next(err);
+    });
+}
+
+exports.deletePost = (req, res, next) => {
+  const postId = req.params.postId;
+  Post.findById(postId)
+    .then(post => {
+      if (!post) {
+        const error = new Error("Post not found.");
+        error.statusCode = 404;
+        throw error;
+      }
+      // check if created by same user
+      clearImage(post.imageUrl);
+      return Post.findByIdAndDelete(postId);
+    })
+    .then(result => {
+      console.log(result);
+      res.status(200).json({ message: 'Post deleted!' });
     })
     .catch((err) => {
       if (!err.statusCode) {
