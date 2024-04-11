@@ -7,6 +7,8 @@ const authRoutes = require("./routes/auth");
 
 const bodyParser = require("body-parser");
 
+// const cors = require('cors');
+
 const multer = require("multer");
 
 const mongoose = require("mongoose");
@@ -44,7 +46,7 @@ app.use(
 app.use("/images", express.static(path.join(__dirname, "images")));
 
 app.use((req, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Origin", "*", 'http://localhost:3000');
   res.setHeader(
     "Access-Control-Allow-Methods",
     "GET, POST, PUT, PATCH, DELETE"
@@ -52,6 +54,12 @@ app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
   next();
 });
+
+// app.use(cors({
+//   origin: '*', // Specify allowed origin(s)
+//   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'], // Specify allowed HTTP methods
+//   allowedHeaders: ['Content-Type', 'Authorization', 'Access-Control-Allow-Headers'], // Specify allowed headers
+// }))
 
 app.use("/feed", feedRoutes);
 app.use("/auth", authRoutes);
@@ -67,6 +75,15 @@ app.use((error, req, res, next) => {
 mongoose
   .connect(MONGODB_URI)
   .then((result) => {
-    app.listen("8080", () => console.log("server started at 8080"));
+    const server = app.listen("8080", () => console.log("server started at 8080"));
+    const io = require('socket.io')(server, {
+      cors: {
+        origin: "*",
+        methods: ["GET", "POST"]
+      }
+    });
+    io.on('connection', socket => {
+      console.log('client connected');
+    });
   })
   .catch((err) => console.log(err));
