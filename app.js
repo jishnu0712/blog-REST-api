@@ -2,8 +2,6 @@ const path = require("path");
 
 const express = require("express");
 
-const feedRoutes = require("./routes/feed");
-const authRoutes = require("./routes/auth");
 
 const bodyParser = require("body-parser");
 
@@ -12,6 +10,11 @@ const bodyParser = require("body-parser");
 const multer = require("multer");
 
 const mongoose = require("mongoose");
+const { graphqlHTTP } = require('express-graphql');
+
+const graphqlSchema = require('./graphql/schema');
+const graphqlResolver = require('./graphql/resolvers');
+
 const MONGODB_URI =
   "mongodb+srv://clumpiness:r1fbR7A327xczldH@cluster0.qcwuzp2.mongodb.net/messages?retryWrites=true&w=majority&appName=Cluster0";
 
@@ -61,8 +64,10 @@ app.use((req, res, next) => {
 //   allowedHeaders: ['Content-Type', 'Authorization', 'Access-Control-Allow-Headers'], // Specify allowed headers
 // }))
 
-app.use("/feed", feedRoutes);
-app.use("/auth", authRoutes);
+app.use('/graphql', graphqlHTTP({
+  schema: graphqlSchema,
+  rootValue: graphqlResolver
+}))
 
 app.use((error, req, res, next) => {
   console.log(error);
@@ -75,10 +80,6 @@ app.use((error, req, res, next) => {
 mongoose
   .connect(MONGODB_URI)
   .then((result) => {
-    const server = app.listen("8080", () => console.log("server started at 8080"));
-    const io = require('./socket').init(server);
-    io.on('connection', socket => {
-      console.log('client connected');
-    });
+    app.listen("8080", () => console.log("server started at 8080"));
   })
   .catch((err) => console.log(err));
