@@ -14,6 +14,7 @@ const { graphqlHTTP } = require('express-graphql');
 
 const graphqlSchema = require('./graphql/schema');
 const graphqlResolver = require('./graphql/resolvers');
+const auth = require('./middleware/auth');
 
 const MONGODB_URI =
   "mongodb+srv://clumpiness:r1fbR7A327xczldH@cluster0.qcwuzp2.mongodb.net/messages?retryWrites=true&w=majority&appName=Cluster0";
@@ -61,11 +62,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// app.use(cors({
-//   origin: '*', // Specify allowed origin(s)
-//   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'], // Specify allowed HTTP methods
-//   allowedHeaders: ['Content-Type', 'Authorization', 'Access-Control-Allow-Headers'], // Specify allowed headers
-// }))
+app.use(auth);
 
 app.use('/graphql', graphqlHTTP({
   schema: graphqlSchema,
