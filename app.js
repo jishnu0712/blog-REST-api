@@ -1,5 +1,4 @@
 const path = require("path");
-const fs = require('fs');
 
 const express = require("express");
 
@@ -16,6 +15,7 @@ const { graphqlHTTP } = require('express-graphql');
 const graphqlSchema = require('./graphql/schema');
 const graphqlResolver = require('./graphql/resolvers');
 const auth = require('./middleware/auth');
+const { clearImage } = require('./util/file');
 
 const MONGODB_URI =
   "mongodb+srv://clumpiness:r1fbR7A327xczldH@cluster0.qcwuzp2.mongodb.net/messages?retryWrites=true&w=majority&appName=Cluster0";
@@ -111,8 +111,3 @@ mongoose
     app.listen("8080", () => console.log("server started at 8080"));
   })
   .catch((err) => console.log(err));
-
-  const clearImage = (filePath) => {
-    filePath = path.join(__dirname, "..", filePath);
-    fs.unlink(filePath, (err) => console.log(err));
-  };
